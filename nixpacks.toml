@@ -15,8 +15,15 @@ nixPkgs = [
     "php83Extensions.dom",
     "php83Extensions.intl",
     "nodejs_20",
-    "nodePackages.npm",
-    "composer"
+    "nodePackages.npm"
+]
+
+nixLibs = []
+
+aptPkgs = []
+
+cmds = [
+    "curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer"
 ]
 
 [phases.install]
