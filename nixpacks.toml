@@ -18,21 +18,22 @@ nixPkgs = [
     "nodePackages.npm"
 ]
 
-nixLibs = []
-
-aptPkgs = []
-
+[phases.composer]
+dependsOn = ["setup"]
 cmds = [
-    "curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer"
+    "curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer",
+    "composer --version"
 ]
 
 [phases.install]
+dependsOn = ["composer"]
 cmds = [
     "composer install --no-dev --optimize-autoloader --no-interaction",
     "npm ci"
 ]
 
 [phases.build]
+dependsOn = ["install"]
 cmds = [
     "npm run build",
     "php artisan config:cache",
