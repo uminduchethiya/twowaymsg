@@ -52,11 +52,19 @@ done
 # Run migrations
 php artisan migrate --force
 
-# Update Apache port to match Railway's $PORT
-PORT=${PORT:-80}
-echo "==> Setting Apache to listen on port $PORT"
-sed -i "s/Listen 80/Listen $PORT/" /etc/apache2/ports.conf
-sed -i "s/<VirtualHost \*:80>/<VirtualHost *:$PORT>/" /etc/apache2/sites-available/000-default.conf
+# Railway provides $PORT — update Apache to listen on it
+LISTEN_PORT=${PORT:-80}
+echo "==> Configuring Apache to listen on port ${LISTEN_PORT}"
 
-echo "==> Starting Apache on port $PORT"
+# Update ports.conf
+sed -i "s/Listen 80$/Listen ${LISTEN_PORT}/" /etc/apache2/ports.conf
+
+# Update VirtualHost
+sed -i "s/<VirtualHost \*:80>/<VirtualHost *:${LISTEN_PORT}>/" /etc/apache2/sites-available/000-default.conf
+
+# Verify the config
+echo "==> Apache ports.conf:"
+cat /etc/apache2/ports.conf
+
+echo "==> Starting Apache on port ${LISTEN_PORT}"
 exec apache2-foreground
