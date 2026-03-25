@@ -51,20 +51,8 @@ RUN npm run build
 RUN mkdir -p storage/framework/{sessions,views,cache} storage/logs bootstrap/cache \
     && chmod -R 777 storage bootstrap/cache
 
-# Nginx config
-RUN echo 'server {\n\
-    listen ${PORT};\n\
-    root /var/www/html/public;\n\
-    index index.php;\n\
-    location / {\n\
-        try_files $uri $uri/ /index.php?$query_string;\n\
-    }\n\
-    location ~ \\.php$ {\n\
-        fastcgi_pass 127.0.0.1:9000;\n\
-        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;\n\
-        include fastcgi_params;\n\
-    }\n\
-}' > /etc/nginx/sites-available/default
+# Copy nginx config
+COPY nginx.conf /etc/nginx/sites-available/default
 
 COPY start.sh /start.sh
 RUN chmod +x /start.sh

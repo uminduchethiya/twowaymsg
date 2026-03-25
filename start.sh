@@ -56,7 +56,7 @@ php artisan migrate --force
 # Configure nginx port
 LISTEN_PORT=${PORT:-8080}
 echo "==> Configuring nginx on port ${LISTEN_PORT}"
-sed -i "s/\${PORT}/${LISTEN_PORT}/g" /etc/nginx/sites-available/default
+sed -i "s/NGINX_PORT/${LISTEN_PORT}/g" /etc/nginx/sites-available/default
 
 # Start php-fpm in background
 echo "==> Starting php-fpm..."
