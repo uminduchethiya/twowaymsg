@@ -1,9 +1,13 @@
 FROM php:8.3-apache
 
-# Enable Apache mod_rewrite, disable conflicting MPM modules
-RUN a2enmod rewrite \
-    && a2dismod mpm_event mpm_worker 2>/dev/null || true \
-    && a2enmod mpm_prefork
+# Fix Apache MPM conflict and enable rewrite
+RUN rm -f /etc/apache2/mods-enabled/mpm_event.conf \
+          /etc/apache2/mods-enabled/mpm_event.load \
+          /etc/apache2/mods-enabled/mpm_worker.conf \
+          /etc/apache2/mods-enabled/mpm_worker.load \
+    && ln -sf /etc/apache2/mods-available/mpm_prefork.conf /etc/apache2/mods-enabled/mpm_prefork.conf \
+    && ln -sf /etc/apache2/mods-available/mpm_prefork.load /etc/apache2/mods-enabled/mpm_prefork.load \
+    && a2enmod rewrite
 
 # Install all system libs + PHP extensions in one layer
 RUN apt-get update && apt-get install -y \
