@@ -3,7 +3,7 @@ FROM php:8.3-apache
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
 
-# System dependencies
+# Install all system libs + PHP extensions in one layer
 RUN apt-get update && apt-get install -y \
     curl \
     git \
@@ -12,27 +12,25 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     libzip-dev \
     libssl-dev \
-    nodejs \
-    npm \
+    libicu-dev \
     && docker-php-ext-install \
         pdo \
         pdo_mysql \
         mbstring \
-        xml \
         zip \
         bcmath \
-        ctype \
-        dom \
         intl \
-        fileinfo \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Install Node 20 via n
-RUN npm install -g n && n 20 && hash -r
+# Install Node.js 20 via NodeSource
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /var/www/html
 
@@ -64,11 +62,8 @@ RUN echo '<VirtualHost *:80>\n\
         AllowOverride All\n\
         Require all granted\n\
     </Directory>\n\
-    ErrorLog ${APACHE_LOG_DIR}/error.log\n\
-    CustomLog ${APACHE_LOG_DIR}/access.log combined\n\
 </VirtualHost>' > /etc/apache2/sites-available/000-default.conf
 
-# Copy startup script
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
 
