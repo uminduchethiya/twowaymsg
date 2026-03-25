@@ -1,18 +1,62 @@
 #!/bin/bash
+set -e
 
-echo "=== START ==="
-echo "PORT=${PORT}"
-echo "APP_KEY=${APP_KEY:0:15}..."
-echo "DB_HOST=${DB_HOST}"
+echo "======================================"
+echo " APP_ENV  = ${APP_ENV}"
+echo " APP_KEY  = ${APP_KEY:0:15}..."
+echo " DB_HOST  = ${DB_HOST}"
+echo " DB_NAME  = ${DB_DATABASE}"
+echo " PORT     = ${PORT:-80}"
+echo "======================================"
 
-# Must have APP_KEY
+# Guard: APP_KEY required
 if [ -z "$APP_KEY" ]; then
-    echo "FATAL: APP_KEY missing"
+    echo "FATAL: APP_KEY is not set in Railway Variables!"
     exit 1
 fi
 
-php artisan config:clear || true
-php artisan config:cache
+# Guard: DB_HOST required
+if [ -z "$DB_HOST" ]; then
+    echo "FATAL: DB_HOST is not set. Add MySQL and link variables!"
+    exit 1
+fi
 
-echo "=== Starting server on port ${PORT:-8000} ==="
-exec php artisan serve --host=0.0.0.0 --port=${PORT:-8000}
+cd /var/www/html
+
+# Clear stale build-time cache
+php artisan config:clear  || true
+php artisan cache:clear   || true
+php artisan view:clear    || true
+php artisan route:clear   || true
+
+# Re-cache with real runtime env vars
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+
+# Wait for MySQL
+echo "==> Waiting for MySQL..."
+for i in $(seq 1 30); do
+    if php -r "new PDO('mysql:host=${DB_HOST};port=${DB_PORT:-3306};dbname=${DB_DATABASE}','${DB_USERNAME}','${DB_PASSWORD}');" 2>/dev/null; then
+        echo "==> MySQL ready!"
+        break
+    fi
+    echo "    ($i/30) waiting..."
+    sleep 2
+    if [ $i -eq 30 ]; then
+        echo "FATAL: MySQL never became available"
+        exit 1
+    fi
+done
+
+# Run migrations
+php artisan migrate --force
+
+# Update Apache port to match Railway's $PORT
+PORT=${PORT:-80}
+echo "==> Setting Apache to listen on port $PORT"
+sed -i "s/Listen 80/Listen $PORT/" /etc/apache2/ports.conf
+sed -i "s/<VirtualHost \*:80>/<VirtualHost *:$PORT>/" /etc/apache2/sites-available/000-default.conf
+
+echo "==> Starting Apache on port $PORT"
+exec apache2-foreground
