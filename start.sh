@@ -3,19 +3,21 @@ set -e
 
 echo "======================================"
 echo " APP_ENV  = ${APP_ENV}"
-echo " APP_KEY  = ${APP_KEY:0:15}..."
+echo " APP_KEY  = ${APP_KEY:0:20}..."
 echo " DB_HOST  = ${DB_HOST}"
 echo " DB_NAME  = ${DB_DATABASE}"
-echo " PORT     = ${PORT:-80}"
+echo " PORT     = ${PORT:-8080}"
 echo "======================================"
 
-# Guard: APP_KEY required
+# Trim whitespace from APP_KEY just in case
+APP_KEY=$(echo "${APP_KEY}" | tr -d '[:space:]')
+
 if [ -z "${APP_KEY}" ]; then
-    echo "FATAL: APP_KEY missing"
+    echo "FATAL: APP_KEY is empty - set it in Railway Variables"
     exit 1
 fi
 
-# Skip DB_HOST guard — will fail naturally at migration step if missing
+echo "==> APP_KEY length: ${#APP_KEY} chars - OK"
 
 cd /var/www/html
 
