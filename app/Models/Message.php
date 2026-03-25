@@ -28,10 +28,11 @@ class Message extends Model
     {
         return $query->whereNotNull('receiver_id')
             ->where(function ($q) use ($userA, $userB) {
-                $q->where('user_id', $userA)->where('receiver_id', $userB);
-            })
-            ->orWhere(function ($q) use ($userA, $userB) {
-                $q->where('user_id', $userB)->where('receiver_id', $userA);
+                $q->where(function ($q) use ($userA, $userB) {
+                    $q->where('user_id', $userA)->where('receiver_id', $userB);
+                })->orWhere(function ($q) use ($userA, $userB) {
+                    $q->where('user_id', $userB)->where('receiver_id', $userA);
+                });
             });
     }
 }

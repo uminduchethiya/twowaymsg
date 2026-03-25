@@ -84,7 +84,7 @@ class ChatController extends Controller
     {
         $validated = $request->validate([
             'body'        => ['required', 'string', 'max:1000'],
-            'receiver_id' => ['required', 'integer', 'exists:users,id', 'different:' . Auth::id()],
+            'receiver_id' => ['required', 'integer', 'exists:users,id', 'not_in:' . Auth::id()],
         ]);
 
         $message = Message::create([
@@ -93,6 +93,8 @@ class ChatController extends Controller
             'room'        => 'dm',
             'body'        => $validated['body'],
         ]);
+
+        $message->load('user');
 
         broadcast(new DirectMessageSent($message));
 
