@@ -21,6 +21,10 @@ echo "==> APP_KEY length: ${#APP_KEY} chars - OK"
 
 cd /var/www/html
 
+# Verify built assets exist
+echo "==> Checking built assets..."
+ls public/build/ 2>/dev/null && echo "==> Build folder OK" || echo "WARNING: public/build missing!"
+
 # Clear and rebuild cache with runtime env vars
 php artisan config:clear  || true
 php artisan cache:clear   || true
