@@ -10,16 +10,12 @@ echo " PORT     = ${PORT:-80}"
 echo "======================================"
 
 # Guard: APP_KEY required
-if [ -z "$APP_KEY" ]; then
-    echo "FATAL: APP_KEY is not set in Railway Variables!"
+if [ -z "${APP_KEY}" ]; then
+    echo "FATAL: APP_KEY missing"
     exit 1
 fi
 
-# Guard: DB_HOST required
-if [ -z "$DB_HOST" ]; then
-    echo "FATAL: DB_HOST is not set. Add MySQL and link variables!"
-    exit 1
-fi
+# Skip DB_HOST guard — will fail naturally at migration step if missing
 
 cd /var/www/html
 
