@@ -48,14 +48,17 @@ COPY . .
 # Finish composer setup
 RUN composer dump-autoload --optimize
 
-# Build Vite assets
+# Build Vite assets (VITE_* env vars must be set as Railway variables)
 RUN npm run build
 
-# Cache Laravel bootstrap files
-RUN php artisan config:cache \
-    && php artisan route:cache \
-    && php artisan view:cache
+# Storage permissions
+RUN mkdir -p storage/framework/{sessions,views,cache} storage/logs bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache
+
+# Copy startup script
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
 
 EXPOSE 8000
 
-CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=${PORT:-8000}
+CMD ["/start.sh"]
