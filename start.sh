@@ -32,10 +32,15 @@ php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 
-# Wait for MySQL
+# Show DB credentials being used (masked)
+echo "==> DB_USERNAME = ${DB_USERNAME}"
+echo "==> DB_PORT     = ${DB_PORT}"
+echo "==> DB_PASSWORD length = ${#DB_PASSWORD}"
+
+# Wait for MySQL using Laravel's built-in connection
 echo "==> Waiting for MySQL..."
 for i in $(seq 1 30); do
-    if php -r "new PDO('mysql:host=${DB_HOST};port=${DB_PORT:-3306};dbname=${DB_DATABASE}','${DB_USERNAME}','${DB_PASSWORD}');" 2>/dev/null; then
+    if php artisan db:show --no-interaction > /dev/null 2>&1; then
         echo "==> MySQL ready!"
         break
     fi
