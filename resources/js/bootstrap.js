@@ -7,17 +7,22 @@ import Pusher from 'pusher-js';
 
 window.Pusher = Pusher;
 
-const scheme   = import.meta.env.VITE_REVERB_SCHEME ?? 'http';
-const isTLS    = scheme === 'https';
-const wsPort   = import.meta.env.VITE_REVERB_PORT   ?? (isTLS ? 443 : 8080);
+// Read config injected by the blade layout via window.__REVERB_CONFIG__
+// so values are always correct at runtime regardless of build-time env vars.
+const cfg    = window.__REVERB_CONFIG__ ?? {};
+const key    = cfg.key    ?? '';
+const host   = cfg.host   ?? '127.0.0.1';
+const port   = cfg.port   ?? 443;
+const scheme = cfg.scheme ?? 'https';
+const isTLS  = scheme === 'https';
 
 window.Echo = new Echo({
-    broadcaster:        'reverb',
-    key:                import.meta.env.VITE_REVERB_APP_KEY,
-    wsHost:             import.meta.env.VITE_REVERB_HOST ?? '127.0.0.1',
-    wsPort:             isTLS ? 443  : wsPort,
-    wssPort:            isTLS ? 443  : wsPort,
-    forceTLS:           isTLS,
-    enabledTransports:  ['ws', 'wss'],
-    disableStats:       true,
+    broadcaster:       'reverb',
+    key,
+    wsHost:            host,
+    wsPort:            isTLS ? 443 : port,
+    wssPort:           isTLS ? 443 : port,
+    forceTLS:          isTLS,
+    enabledTransports: ['ws', 'wss'],
+    disableStats:      true,
 });
